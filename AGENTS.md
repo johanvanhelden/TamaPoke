@@ -61,7 +61,9 @@ Everything runs on the host (WSL2, Ubuntu); there is no Docker. Use the `make` t
 - Take upstream updates by fast-forwarding `main`, then `git merge main` into `johan` (merge, no rebase).
 - Cherry-pick from other forks onto a `feature/*` branch, one feature per commit (see `FORKS.md`).
 - Keep new features in new files with minimal hooks into `TamaPoke.ino`, and do not reformat existing code, so upstream merges stay small.
-- Remotes and git config (`upstream`, `rerere`) are set up by the developer; do not change them.
+- Remotes and git config are set up by the developer on every machine; do not change them. One-time setup:
+  - `git remote add upstream https://github.com/ShadowEnemyx/TamaPoke.git`
+  - `git config rerere.enabled true` (repo-local on purpose, so it does not affect other projects)
 
 ## Data handling
 
