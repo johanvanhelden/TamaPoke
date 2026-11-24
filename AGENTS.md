@@ -53,6 +53,16 @@ Everything runs on the host (WSL2, Ubuntu); there is no Docker. Use the `make` t
 - Do not commit historical firmware binaries in bulk; only the four parts of an approved version.
 - `FW_VERSION` in `TamaPoke.ino`, `tools/build_web_gen3.sh`, `tools/build_web_local.sh` and the manifests in `web/` must agree. The code wins; fix the docs afterwards.
 
+## Branch strategy
+
+- `main` is a clean mirror of `upstream/main` (ShadowEnemyx/TamaPoke). Never commit on it.
+- `johan` is the integration branch: the one that is flashed to the board. It holds the emulator, agent tooling and own features.
+- Work on `feature/<name>` branches cut from `johan` and merge them back into `johan`.
+- Take upstream updates by fast-forwarding `main`, then `git merge main` into `johan` (merge, no rebase).
+- Cherry-pick from other forks onto a `feature/*` branch, one feature per commit (see `FORKS.md`).
+- Keep new features in new files with minimal hooks into `TamaPoke.ino`, and do not reformat existing code, so upstream merges stay small.
+- Remotes and git config (`upstream`, `rerere`) are set up by the developer; do not change them.
+
 ## Data handling
 
 - Never put credentials, tokens or personal data in prompts, logs, scratch files or commits.
