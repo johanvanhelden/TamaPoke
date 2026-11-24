@@ -30,7 +30,7 @@ Type serial commands in the terminal that started the emulator: `STATS`, `HEALTH
 
 ## Headless screenshots (for agents)
 
-Never open a window while working as an agent (it steals the user's focus). To drive the emulator with serial commands without a window: `env -u DISPLAY -u WAYLAND_DISPLAY SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=disk SDL_DISKAUDIOFILE=.dev/tmp/out.raw timeout -s INT 8 tools/emu/tamapoke-emu --save .dev/tmp/x.nvs` with commands on stdin.
+Never use the developer's save as an agent: always pass `--save .dev/tmp/<name>.nvs` (the default `tamapoke.nvs` is the developer's pet) and delete your own saves afterwards. Never open a window while working as an agent (it steals the user's focus). To drive the emulator with serial commands without a window: `env -u DISPLAY -u WAYLAND_DISPLAY SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=disk SDL_DISKAUDIOFILE=.dev/tmp/out.raw timeout -s INT 8 tools/emu/tamapoke-emu --save .dev/tmp/x.nvs` with commands on stdin.
 
 The save file is written at exit (Esc, window close, SIGINT/SIGTERM/SIGHUP, `ESP.restart()`) after forcing a pet save, and every 30 s while running; it is written through a `.tmp` file. A `kill -9` or crash still loses the session.
 

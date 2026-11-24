@@ -43,6 +43,7 @@ Everything runs on the host (WSL2, Ubuntu); there is no Docker. Use the `make` t
 - Do not endanger the save (ESP32 NVS). New logic needs native tests before UI or hardware work; avoid save-format migrations unless they are the task.
 - Audio stays synthetic: no original Pokémon cries, ROM samples or other copyrighted audio.
 - Put scratch files in `.dev/tmp/` (gitignored) and clean up afterwards.
+- Agents never touch the developer's own emulator save (`tamapoke.nvs` in the repository root, or any save passed by the developer): no reading, copying, deleting or running the emulator with it. Always run the emulator with an own save (`--save .dev/tmp/<name>.nvs`, `make emu SAVE=...`; `make emu-shot` already does) and never open a window (see the `emulator` skill).
 
 ## Release and installer rules
 
