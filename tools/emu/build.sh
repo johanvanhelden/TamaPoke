@@ -38,7 +38,7 @@ g++ -std=c++17 -O1 -w \
   -DSPRITE_DIR="\"$ROOT/tools/sdcard/mons\"" \
   $SDL_CFLAGS \
   -o tamapoke-emu \
-  sketch.cpp "$ROOT/pet.cpp" "$ROOT/i18n.cpp" "$ROOT/battle.cpp" "$ROOT/species_chirp.cpp" "$ROOT/thumb_format.cpp" \
+  sketch.cpp "$ROOT/pet.cpp" "$ROOT/i18n.cpp" "$ROOT/battle.cpp" "$ROOT/species_chirp.cpp" "$ROOT/thumb_format.cpp" "$ROOT/audio.cpp" \
   host_impl.cpp font.cpp clock.cpp main_sdl.cpp \
   $SDL_LIBS
 

@@ -10,7 +10,7 @@ make emu-fast    # 60x time: one game minute per real second
 
 Or directly: `bash tools/emu/build.sh && tools/emu/tamapoke-emu --scale 2 --fast 60`.
 
-It is **not a substitute for the board**: timing, touch behaviour, DMA tearing, PSRAM pressure, audio and battery only exist on hardware.
+It is **not a substitute for the board**: timing, touch behaviour, DMA tearing, PSRAM pressure, and battery only exist on hardware. Audio is synthesized by the real `audio.cpp` and played through the host speakers, but the speaker, ES8311 and real loudness are only proven on the board. On WSL2 sound needs WSLg's PulseAudio (`SDL_AUDIODRIVER=pulseaudio` if SDL picks the wrong driver); without an audio device the emulator warns once and stays silent.
 
 ## Using it
 
@@ -30,7 +30,7 @@ Pixels outside the round bezel are dimmed, not hidden, so you can see what the r
 |---|---|
 | `--scale N` | window zoom (default 2) |
 | `--fast N` | run the game clock N× faster. The speed-up is **suspended while you touch the panel**, because the sketch times gestures on the same clock (a tap must be under 1.5 s) |
-| `--save FILE` | where NVS is persisted (default `tamapoke.nvs` in the current directory) |
+| `--save FILE` | where NVS is persisted (default `tamapoke.nvs` in the current directory). Written at exit (including SIGHUP/SIGTERM and `ESP.restart()`) after forcing a pet save, and every 30 s; `kill -9` loses the session |
 | `--wipe` | delete the save first |
 | `--sprites DIR` | sprite directory (default `tools/sdcard/mons`) |
 | `--shot FILE.ppm` | headless: run without a window, write one frame and exit |
@@ -38,6 +38,8 @@ Pixels outside the round bezel are dimmed, not hidden, so you can see what the r
 | `--tap X,Y` | with `--shot`: tap at panel coordinates; repeatable. Taps run after a 1 s boot |
 
 `make emu-shot TAPS="233,145" MS=2000` wraps the headless mode and writes `.dev/tmp/shot.ppm`.
+
+Without a window (agents, CI): `env -u DISPLAY -u WAYLAND_DISPLAY SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=disk SDL_DISKAUDIOFILE=out.raw tools/emu/tamapoke-emu ...` runs the full loop with serial commands on stdin.
 
 ## How it works
 
@@ -48,7 +50,8 @@ Pixels outside the round bezel are dimmed, not hidden, so you can see what the r
 | `Preferences.h` | NVS, backed by a file so the pet survives restarts |
 | `Arduino_GFX_Library.h` | the canvas: every primitive the sketch uses, into an RGB565 buffer |
 | `TouchDrvCSTXXX.hpp` | the CST9217, fed by the mouse |
-| `host_impl.cpp` | SD (sprites and thumbnails from a directory), RTC, battery, audio (silent), IMU (steps/shake from the keyboard) |
+| `freertos_shim.h`, `ESP_I2S.h` | FreeRTOS queue/task shims (threads) and an I2S stub feeding the SDL audio device (`main_sdl.cpp`) so the unmodified `audio.cpp` runs |
+| `host_impl.cpp` | SD (sprites and thumbnails from a directory), RTC, battery, IMU (steps/shake from the keyboard) |
 | `font.cpp` | the classic 5×7 GFX glyphs |
 | `genproto.py` | the function prototypes the Arduino build normally generates |
 | `main_sdl.cpp` | window, input, NVS file, headless capture |

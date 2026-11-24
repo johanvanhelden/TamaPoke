@@ -7,6 +7,8 @@
 #include <cmath>
 #include <string>
 #include <chrono>
+#include <thread>
+#include "freertos_shim.h"
 
 #define IRAM_ATTR
 #define PROGMEM
@@ -27,11 +29,13 @@ uint32_t millis();          // clock.cpp
 void emuSetTimeScale(uint32_t s);
 uint32_t emuTimeScale();
 inline void delay(uint32_t ms) {
-  // the emulator must keep pumping SDL events, so delay is a no-op; nothing in
-  // the sketch relies on it for correctness, only for boot-time settling
-  (void)ms;
+  // On the main thread this is a no-op: the emulator must keep pumping SDL
+  // events and nothing in the sketch relies on it beyond boot-time settling.
+  // Worker threads (the audio task) sleep for real so their pacing holds.
+  if (g_emuRealDelay) std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 }
 inline void pinMode(int, int) {}
+inline void digitalWrite(int, int) {}
 inline int digitalPinToInterrupt(int p) { return p; }
 
 // There is no interrupt controller here, so the handler is kept in a slot and
@@ -140,8 +144,17 @@ inline void esp_light_sleep_start() {}
 inline int esp_sleep_get_wakeup_cause() { return 0; }
 inline int digitalRead(int) { return 1; }
 
+// Only the ES8311 (0x18, used by audio.cpp) acknowledges; reads return 0.
 struct FakeWire {
   void begin(int, int) {}
   void setTimeOut(int) {}
+  void beginTransmission(int addr) { m_addr = addr; }
+  size_t write(uint8_t) { return 1; }
+  int endTransmission(bool = true) { return m_addr == 0x18 ? 0 : 2; }
+  int requestFrom(int, int) { return 1; }
+  int available() { return 1; }
+  int read() { return 0; }
+private:
+  int m_addr = 0;
 };
 extern FakeWire Wire;

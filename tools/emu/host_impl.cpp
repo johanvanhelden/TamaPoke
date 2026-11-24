@@ -140,17 +140,6 @@ void setPowerCacheInterval(uint32_t) {}
 void pwrSetup() {}
 bool pwrShortPressed() { return false; }
 
-// --- audio (silent) ---
-static uint8_t g_audioMode = SOUND_FULL;
-void audioBegin() {}
-void sfxPlay(uint8_t) {}
-void audioSetEnabled(bool on) { g_audioMode = on ? SOUND_FULL : SOUND_OFF; }
-bool audioEnabled() { return g_audioMode != SOUND_OFF; }
-void audioSetMode(uint8_t m) { g_audioMode = m; }
-uint8_t audioMode() { return g_audioMode; }
-bool audioBusy() { return false; }
-void speciesChirpPlay(int16_t, bool) {}
-
 // --- IMU: no sensor here; the SDL layer feeds steps while the W key is held ---
 static uint32_t g_steps = 0, g_stepsTaken = 0;
 static bool g_shake = false;
