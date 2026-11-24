@@ -3,7 +3,7 @@
 FAST ?= 1
 SAVE ?= tamapoke.nvs
 
-.PHONY: help clean emu-setup emu-build emu emu-fast emu-shot test test-agent-tools ai-docs-check web-check validate
+.PHONY: help clean emu-setup emu-build emu emu-fast emu-shot test test-agent-tools ai-docs-check web-check pages-check validate
 
 help: ## List the documented targets
 	@awk 'BEGIN {FS = ":[^#]*## "} /^[a-zA-Z_-]+:[^#]*## / {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -40,5 +40,8 @@ ai-docs-check: ## Check the agent docs for stale globs, Make targets, paths and 
 web-check: ## Validate the installer builds without replacing artifacts
 	@bash tools/build_web.sh --check
 	@bash tools/build_web_local.sh --check
+
+pages-check: ## Build the Pages site into a temporary directory and run its guards (needs Arduino CLI)
+	@bash tools/build_pages.sh --check
 
 validate: test test-agent-tools ai-docs-check ## Fast checks that need no toolchain (use web-check for the Arduino build)
