@@ -123,6 +123,22 @@ assert.equal(result.writeAborted, true);
 assert.equal(result.writePortClosed, true);
 assert.equal(result.writeDisconnected, true);
 
+const firmwareSource = fs.readFileSync(new URL('../TamaPoke.ino', import.meta.url), 'utf8');
+const fwVersions = [...firmwareSource.matchAll(/^#define FW_VERSION "([^"]+)"/gm)].map((m) => m[1]);
+assert(fwVersions.length >= 2, 'TamaPoke.ino must define FW_VERSION per build profile');
+for (const version of fwVersions.slice(0, 2)) {
+  assert(/^\d+\.\d+\.\d+(-local)?$/.test(version),
+         `FW_VERSION ${version} must be the fork SemVer MAJOR.MINOR.PATCH (optional -local)`);
+}
+assert(/^#define FW_BASE_UPSTREAM "\d+\.\d+\.\d+"/m.test(firmwareSource),
+       'TamaPoke.ino must define FW_BASE_UPSTREAM as the upstream firmware base version');
+
+const localManifest = JSON.parse(fs.readFileSync(new URL('../web/manifest-local.json', import.meta.url), 'utf8'));
+assert.equal(localManifest.version, fwVersions[0], 'manifest-local.json must carry the local FW_VERSION');
+assert(localManifest.builds[0].parts.every((p) => p.path.startsWith(`firmware/tamapoke-${fwVersions[0]}-`)),
+       'manifest-local.json part paths must carry the local FW_VERSION');
+assert(html.includes(`manifest-local.json?v=${fwVersions[0]}`), 'dev.html must pin the local FW_VERSION');
+
 const releaseHtml = fs.readFileSync(new URL('../web/release-gen3.html', import.meta.url), 'utf8');
 const releaseScript = fs.readFileSync(new URL('../web/installer-gen3.js', import.meta.url), 'utf8');
 const publicHtml = fs.readFileSync(new URL('../web/index.html', import.meta.url), 'utf8');

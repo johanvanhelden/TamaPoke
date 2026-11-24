@@ -38,7 +38,7 @@ ai-docs-check: ## Check the agent docs for stale globs, Make targets, paths and 
 	@python3 .dev/ai-docs-check.py
 
 web-check: ## Validate the installer builds without replacing artifacts
-	@bash tools/build_web.sh --check
+	@bash tools/build_pages.sh --check
 	@bash tools/build_web_local.sh --check
 
 pages-check: ## Build the Pages site into a temporary directory and run its guards (needs Arduino CLI)

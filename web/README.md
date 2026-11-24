@@ -9,7 +9,7 @@ End users currently use:
 (This fork's installer is published at <https://johanvanhelden.github.io/TamaPoke/>,
 see below.)
 
-`index.html` and `manifest.json` serve the public Gen‑3 release `1.36.2` with
+`index.html` and `manifest.json` serve the public Gen‑3 release `1.36.2` (the tracked upstream artifacts) with
 Pokémon #1–386. They expose no debug controls and require the complete two-step
 firmware-plus-sprites installation.
 
@@ -19,9 +19,9 @@ Every push to `johan` runs `.github/workflows/pages.yml`: `make test`, then
 `tools/build_pages.sh` (public `TAMAPOKE_GEN3_RELEASE` build), then a Pages
 deploy. The site always carries the latest `johan` commit (shown on the page and
 in `build-info.json`); firmware files are named
-`tamapoke-<version>-<branch>-<shortsha>-*.bin` (for example `1.36.2-johan-<shortsha>`). `dev.html`,
+`tamapoke-<version>-<branch>-<shortsha>-*.bin` (for example `0.1.0-johan-<shortsha>`, where `0.1.0` is the fork's `FW_VERSION`). `dev.html`,
 `manifest-local.json` and historical firmware are never published. The page is
-branded as the johan fork build (title, upstream base version, commit) with links
+branded as the johan fork build (title, fork firmware version, upstream base version, commit) with links
 to the repository, changelog and upstream; `tools/build_pages.sh` does this, not
 `web/index.html`.
 
@@ -39,7 +39,7 @@ Build locally with `make pages-check` or `bash tools/build_pages.sh`.
 
 ## Gen‑3 pages
 
-- `dev.html` + `manifest-local.json`: `1.36.2-hoenn-walk-local`, compiled with
+- `dev.html` + `manifest-local.json`: fork local build `0.1.0-local` (the `FW_VERSION` of the local profile), compiled with
   `TAMAPOKE_LOCAL_TEST`. It includes click-driven Pokémon, evolution, battle,
   IMU and step diagnostics.
 - `release-gen3.html` + `manifest-gen3.json`: local reference copy of the same
@@ -65,13 +65,24 @@ the two-package sequence keeps every GitHub-hosted file below the limit.
 ## Build and validate
 
 ```bash
-bash tools/build_web.sh --check         # current public Gen 3
-bash tools/build_web_local.sh --check   # Gen 3 debug
+bash tools/build_pages.sh --check       # fork Pages site (public release build)
+bash tools/build_web_local.sh --check   # Gen 3 debug build for dev.html
 bash tools/build_web_gen2_legacy.sh --check # pinned historical Gen 2
 ```
 
-Omit `--check` to refresh the current public Gen‑3 artifacts. The separate
-legacy Gen‑2 command is read-only and never modifies installer files.
+`make web-check` runs the first two. `build_web_local.sh` reads its version from
+`FW_VERSION` of the `TAMAPOKE_LOCAL_TEST` profile in `TamaPoke.ino` (for example
+`0.1.0-local`) and refuses to run when `manifest-local.json` disagrees. On a
+version bump re-point `manifest-local.json` (version, part paths) and `dev.html`
+(`?v=` and the label) to the new `-local` version. Omit `--check` to refresh the
+local firmware parts (`web/firmware/tamapoke-<version>-*.bin`, gitignored) and
+the Gen‑3 sprite bundle. The legacy Gen‑2 command is read-only.
+
+**Frozen upstream flow:** `build_web.sh` and `build_web_gen3.sh` describe how the
+tracked upstream `1.36.2` artifacts (`manifest.json`, `manifest-gen3.json`,
+`index.html`, `release-gen3.html`, `firmware/tamapoke-1.36.2-*.bin`) were built.
+They refuse to run because the source now carries the fork version; the fork's
+public installer is built by `tools/build_pages.sh` in CI.
 
 Each build validates its firmware version, Dex count, package entry counts and
 thumbnail structure/count. The public Gen‑3 build also rejects binaries that

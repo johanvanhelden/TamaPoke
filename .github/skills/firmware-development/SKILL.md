@@ -19,15 +19,16 @@ CI (`.github/workflows/pages.yml`) installs the same pinned core and libraries; 
 
 1. `make test`: native tests of `Pet`, battle code, thumbnails and the Web Serial script.
 2. `make emu` / `make emu-shot`: the real firmware on the desktop (`emulator` skill), including 60× aging.
-3. `make web-check` / `make pages-check`: full Arduino compile plus installer validation without replacing artifacts.
+3. `make web-check` (Pages build check plus local installer check) / `make pages-check`: full Arduino compile plus installer validation without replacing artifacts.
 4. Flash the board with the local installer (`web-installer` skill). Hardware is the final judge for display clipping, touch, IMU, volume, SD transfer and save preservation.
 
 ## Build profiles
 
-- `TAMAPOKE_LOCAL_TEST` (firmware `1.36.2-hoenn-walk-local`): debug serial commands (`TESTMON`, `TESTEVO`, ...) and the `web/dev.html` flow.
-- `TAMAPOKE_GEN3_RELEASE` (firmware `1.36.2`): the public build without debug commands.
+- `TAMAPOKE_LOCAL_TEST` (`FW_VERSION` `<fork version>-local`, e.g. `0.1.0-local`): debug serial commands (`TESTMON`, `TESTEVO`, ...) and the `web/dev.html` flow.
+- `TAMAPOKE_GEN3_RELEASE` (`FW_VERSION` `<fork version>`, e.g. `0.1.0`): the public build without debug commands.
 - Gen-3 source (`DEX_COUNT > 251`) without one of these defines fails on purpose (`#error`). The two defines are mutually exclusive.
-- Bumping a version: change `FW_VERSION` in `TamaPoke.ino`, `tools/build_web_gen3.sh`, `tools/build_web_local.sh` and the manifests under `web/`, then run `make web-check`.
+- Bumping a version: follow "Versioning" in `AGENTS.md`. Change `FW_VERSION` (both profiles) in `TamaPoke.ino` plus the changelog; `FW_BASE_UPSTREAM` only changes on an upstream merge. `make test` checks the format and `make pages-check` builds the Pages site from the source version. `tools/build_web_local.sh` reads the local version from the source, but `web/manifest-local.json` and `web/dev.html` name it and must be re-pointed to the new `-local` version on every bump. `tools/build_web.sh`, `tools/build_web_gen3.sh`, `web/manifest.json`, `web/manifest-gen3.json`, `web/index.html` and `web/release-gen3.html` are the frozen upstream `1.36.2` flow and never change per bump.
+- On the device screen only `v<FW_VERSION>` is shown; keep it short enough for the settings line.
 
 ## Save safety
 

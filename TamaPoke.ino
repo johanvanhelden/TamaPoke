@@ -28,8 +28,9 @@
 #include "dayphase.h"
 #include "imu.h"
 
-// Version del firmware. Subir este numero en cada release (y manifest.json para
-// el instalador web). Se muestra en la pantalla de ajustes y por serie al arrancar.
+// Fork SemVer (see AGENTS.md, Versioning). The settings screen shows FW_VERSION
+// only; serial boot and SAVEINFO also show FW_BASE_UPSTREAM.
+#define FW_BASE_UPSTREAM "1.36.2"
 #if defined(TAMAPOKE_LOCAL_TEST) && defined(TAMAPOKE_GEN3_RELEASE)
 #error "TAMAPOKE_LOCAL_TEST and TAMAPOKE_GEN3_RELEASE are mutually exclusive"
 #endif
@@ -37,9 +38,9 @@
 #error "Gen-3 source requires an explicit local-test or release build profile"
 #endif
 #ifdef TAMAPOKE_LOCAL_TEST
-#define FW_VERSION "1.36.2-hoenn-walk-local"
+#define FW_VERSION "0.1.0-local"
 #elif defined(TAMAPOKE_GEN3_RELEASE)
-#define FW_VERSION "1.36.2"
+#define FW_VERSION "0.1.0"
 #else
 #define FW_VERSION "1.35.3-soft-step"
 #endif
@@ -357,7 +358,7 @@ void setup() {
   // monitor serie abierto en el host (el bufer TX del USB CDC se llena
   // y nadie lo vacia) -> con timeout 0 los mensajes se descartan
   Serial.setTxTimeoutMs(0);
-  Serial.printf("TamaPoke fw v%s\n", FW_VERSION);
+  Serial.printf("TamaPoke fw v%s (upstream %s)\n", FW_VERSION, FW_BASE_UPSTREAM);
   loadLang();  // idioma guardado (ES por defecto)
   Wire.begin(IIC_SDA, IIC_SCL);
   // CST9217 (tactil), AXP2101 (PMU) y PCF85063 (RTC) comparten este bus I2C.
@@ -886,8 +887,8 @@ void handleSerial() {
     Serial.println("DONE");
 #endif
   } else if (line == "SAVEINFO") {
-    Serial.printf("fw=%s save=%s createdBoot=%d spec=%d level=%u egg=%d starter=%d age=%lu\n",
-                  FW_VERSION, pet.saveLoadedFromNvs ? "loaded" : "created",
+    Serial.printf("fw=%s upstream=%s save=%s createdBoot=%d spec=%d level=%u egg=%d starter=%d age=%lu\n",
+                  FW_VERSION, FW_BASE_UPSTREAM, pet.saveLoadedFromNvs ? "loaded" : "created",
                   pet.saveCreatedThisBoot, pet.speciesId, pet.level(), pet.isEgg(),
                   pet.awaitingStarter(), (unsigned long)pet.ageMinutes);
     Serial.printf("battle wins=%u losses=%u streak=%u best=%u nick=%s\n",

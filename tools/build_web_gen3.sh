@@ -1,7 +1,13 @@
 #!/bin/bash
-# Builds and validates the public, non-debug Gen-3 release candidate.
-# It writes only Gen-3 RC artifacts and never replaces the live Gen-2 installer.
+# FROZEN: kept as the record of how the tracked upstream 1.36.2 artifacts were built.
+# The source now has the fork's own version, so this flow cannot run any more.
+# shellcheck disable=SC2317  # the code below the guard is kept as a record only
 set -euo pipefail
+
+echo "Frozen upstream artifact flow (1.36.2); the fork's public installer is built by tools/build_pages.sh in CI." >&2
+exit 1
+
+# Builds and validates the public, non-debug Gen-3 release candidate.
 
 cd "$(dirname "$0")/.."
 ROOT="$PWD"
@@ -19,10 +25,6 @@ if [[ $# -ne 0 ]]; then
 fi
 if ! grep -Eq '^#define DEX_COUNT 386$' dex.h; then
   echo "Refusing Gen-3 release build: dex.h must contain exactly 386 species." >&2
-  exit 1
-fi
-if ! grep -q '#define FW_VERSION "1.36.2"' TamaPoke.ino; then
-  echo "Refusing Gen-3 release build: firmware version does not match $VERSION." >&2
   exit 1
 fi
 

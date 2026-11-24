@@ -3,7 +3,7 @@
 [![Flash in browser](https://img.shields.io/badge/flash-in%20browser-FF6B00?logo=googlechrome&logoColor=white)](https://shadowenemyx.github.io/TamaPoke/web/)
 [![MakerWorld](https://img.shields.io/badge/MakerWorld-3D%20case-00AE42?logo=bambulab&logoColor=white)](https://makerworld.com/es/models/2937822-tamapoke-a-pokemon-pokeball-tamagotchi)
 ![Board](https://img.shields.io/badge/board-ESP32--S3%20round%20AMOLED-E7352C?logo=espressif&logoColor=white)
-![Firmware](https://img.shields.io/badge/firmware-v1.36.2-4F93C4)
+![Firmware](https://img.shields.io/badge/firmware-v0.1.0-4F93C4)
 ![Pokédex](https://img.shields.io/badge/Pok%C3%A9mon-386-E8503A)
 ![Languages](https://img.shields.io/badge/languages-6-FFCB05)
 
@@ -20,23 +20,25 @@ firmware changes. This fork adds:
 
 - **Installer from this fork:** <https://johanvanhelden.github.io/TamaPoke/>.
   GitHub Actions publishes it from every push to `johan` (native tests, then the
-  public Gen‑3 release build). Builds are tagged `<version>-johan-<shortsha>`
-  and the commit is shown on the page. Install steps are the same as below.
+  public Gen‑3 release build). It serves this fork's firmware `0.1.0` (the fork has
+  its own version, based on upstream `1.36.2`). Builds are tagged
+  `<version>-johan-<shortsha>` and the commit is shown on the page. Install steps are the same as below.
 - **Desktop emulator:** `make emu` / `make emu-fast` runs the real firmware in an
   SDL window with audio, see [tools/emu/README.md](tools/emu/README.md).
 - **Docs:** [CHANGELOG.md](CHANGELOG.md) lists what differs from upstream,
   [FORKS.md](FORKS.md) compares the other forks, [AGENTS.md](AGENTS.md) holds the
   project and branch rules. `make help` lists the available targets.
 
-The badge and the links below that point to `shadowenemyx.github.io` go to the
-upstream installer, which is a separate build.
+The links below that point to `shadowenemyx.github.io` go to the upstream
+installer, which is a separate build.
 
 ## Install the current public version
 
 ### [Open the ShadowEnemyx web installer](https://shadowenemyx.github.io/TamaPoke/web/) or [this fork's installer](https://johanvanhelden.github.io/TamaPoke/)
 
-The hosted installers serve firmware `1.36.2` with all 386 Pokémon from
-Generations 1–3. Use desktop **Chrome or Edge**:
+The ShadowEnemyx installer serves upstream firmware `1.36.2` and this fork's
+installer serves fork firmware `0.1.0` (based on upstream `1.36.2`), both with
+all 386 Pokémon from Generations 1–3. Use desktop **Chrome or Edge**:
 
 1. Connect the Waveshare board by USB and install the firmware.
 2. When updating, leave **Erase device unchecked** to preserve the save.
@@ -46,8 +48,8 @@ No ZIP, Arduino project or manual `.bin` download is required.
 
 ## Gen 3
 
-Gen 3 is now public. The hosted installer uses the tested, debug-free `1.36.2`
-firmware. The local `dev.html` page remains available only for development and
+Gen 3 is now public. The hosted installers use the tested, debug-free release
+build (upstream `1.36.2`, fork `0.1.0`). The local `dev.html` page remains available only for development and
 hardware diagnostics.
 
 > [!WARNING]
@@ -113,9 +115,9 @@ the separate `1.75C` is a different board.
 
 ## Developer builds
 
-Public release `1.36.2` includes the Hoenn expedition sites and the optional
-250/500/1,000-step tour goals. The local debug build is
-`1.36.2-hoenn-walk-local`; see [local test notes](HOENN_WALK_LOCAL.md).
+Public release (upstream `1.36.2`, fork `0.1.0`) includes the Hoenn expedition
+sites and the optional 250/500/1,000-step tour goals. The local debug build is
+`0.1.0-local` in this fork (`1.36.2-hoenn-walk-local` upstream); see [local test notes](HOENN_WALK_LOCAL.md).
 
 Board profile:
 
@@ -129,11 +131,13 @@ Validated toolchain: ESP32 Arduino core `3.3.10`, GFX Library for Arduino
 Build and validate without replacing installer artifacts:
 
 ```bash
-bash tools/build_web.sh --check         # current public Gen 3, 386 Pokémon
-bash tools/build_web_local.sh --check   # Gen 3 debug build, 386 Pokémon
+bash tools/build_pages.sh --check       # GitHub Pages site of this fork (public release build)
+bash tools/build_web_local.sh --check   # Gen 3 debug build for dev.html
 bash tools/build_web_gen2_legacy.sh --check # pinned historical Gen 2 check
-bash tools/build_pages.sh --check       # GitHub Pages site of this fork
 ```
+
+`tools/build_web.sh` and `tools/build_web_gen3.sh` are frozen: they describe the
+tracked upstream `1.36.2` artifacts and refuse to run (see `web/README.md`).
 
 Try the firmware on the desktop without flashing (SDL emulator, optional 60× time):
 
@@ -146,7 +150,7 @@ See [tools/emu/README.md](tools/emu/README.md).
 Build the local artifacts, serve the folder and open the required page:
 
 ```bash
-bash tools/build_web_local.sh           # or: bash tools/build_web_gen3.sh
+bash tools/build_web_local.sh
 python3 -m http.server 8000 --directory web
 ```
 
@@ -179,8 +183,7 @@ known-complete Gen‑2 card.
 ```bash
 make test   # native logic tests and Web Serial tests (cd tests && make test)
 make ai-docs-check
-bash tools/build_web.sh --check
-bash tools/build_web_local.sh --check
+make web-check   # build_pages.sh --check + build_web_local.sh --check
 bash tools/build_web_gen2_legacy.sh --check
 git diff --check
 ```

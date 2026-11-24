@@ -20,11 +20,15 @@ base, mirrored by the `main` branch) and
   entry below. Whenever a change affects compatibility with upstream saves, the
   entry says so.
 
-`FW_VERSION` stays aligned with upstream. Pages builds are tagged
-`<version>-johan-<shortsha>` in the firmware file names and the manifest; the
-firmware binary embeds only the plain version.
+The fork has its own SemVer (`FW_VERSION`, starting at `0.1.0`); the upstream
+firmware it is based on is recorded as `FW_BASE_UPSTREAM`. The bump policy is in
+`AGENTS.md` (Versioning). Pages builds are tagged `<version>-johan-<shortsha>` in
+the firmware file names and the manifest; the firmware binary embeds only the
+plain version.
 
 ## [Unreleased]
+
+## [0.1.0] - 2026-11-24
 
 ### Added
 
@@ -44,6 +48,15 @@ firmware binary embeds only the plain version.
 
 ### Changed
 
+- Fork versioning: `FW_VERSION` is now the fork's own SemVer starting at `0.1.0`;
+  `FW_BASE_UPSTREAM` records the upstream base `1.36.2`. The device shows `v0.1.0`;
+  serial boot, `SAVEINFO`, the Pages page and `build-info.json` also name the
+  upstream base. Saves are unaffected.
+- The local installer (`dev.html`, `manifest-local.json`, `tools/build_web_local.sh`)
+  now uses the fork version `0.1.0-local`; the script reads it from `TamaPoke.ino`.
+  `tools/build_web.sh` and `tools/build_web_gen3.sh` are frozen to the upstream
+  `1.36.2` artifacts and refuse to run; `make web-check` now checks the Pages
+  build and the local build.
 - The Pages installer is labeled as the johan fork build (page title, a line with
   the upstream firmware version and commit) and links to this repository, its
   changelog and upstream (`tools/build_pages.sh`).

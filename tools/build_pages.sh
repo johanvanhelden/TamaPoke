@@ -41,6 +41,12 @@ if [[ ! $FW_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
   exit 1
 fi
 
+FW_BASE_UPSTREAM="$(sed -nE 's/^#define FW_BASE_UPSTREAM "([^"]+)".*/\1/p' TamaPoke.ino)"
+if [[ ! $FW_BASE_UPSTREAM =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  echo "Refusing Pages build: cannot read FW_BASE_UPSTREAM from TamaPoke.ino (got '$FW_BASE_UPSTREAM')." >&2
+  exit 1
+fi
+
 COMMIT="${GITHUB_SHA:-$(git rev-parse HEAD)}"
 SHORT="${COMMIT:0:7}"
 BRANCH="${GITHUB_REF_NAME:-$(git rev-parse --abbrev-ref HEAD)}"
@@ -87,8 +93,10 @@ done
 cp web/installer-gen3.js web/sprites.pak web/sprites-gen3-update.pak "$OUT/"
 : > "$OUT/.nojekyll"
 
-# index.html pins its assets to the firmware version; re-pin them to the commit and
-# show the commit next to the version. Each substitution must hit exactly once.
+# web/index.html is the tracked upstream-style page and still names the upstream
+# firmware version in its texts; the generated copy shows the fork version and pins
+# its assets to the commit. Each substitution must hit exactly once.
+PAGE_SRC_VERSION="1.36.2"
 cp web/index.html "$OUT/index.html"
 subst() {
   local pattern="$1" replacement="$2"
@@ -98,10 +106,12 @@ subst() {
   fi
   sed -i "s|$pattern|$replacement|" "$OUT/index.html"
 }
-subst 'manifest="manifest.json?v='"$FW_VERSION"'"' 'manifest="manifest.json?v='"$SHORT"'"'
-subst 'src="installer-gen3.js?v='"$FW_VERSION"'"' 'src="installer-gen3.js?v='"$SHORT"'"'
+subst 'manifest="manifest.json?v='"$PAGE_SRC_VERSION"'"' 'manifest="manifest.json?v='"$SHORT"'"'
+subst 'src="installer-gen3.js?v='"$PAGE_SRC_VERSION"'"' 'src="installer-gen3.js?v='"$SHORT"'"'
 subst '<title>TamaPoke · Installer</title>' '<title>TamaPoke (johan fork) · Installer</title>'
-subst 'Gen 1–3</p>' 'Gen 1–3<br>johan fork build · based on upstream firmware '"$FW_VERSION"' · commit <code>'"$SHORT"'</code></p>'
+subst 'Firmware: <b>'"$PAGE_SRC_VERSION"'</b> · Gen 1–3</p>' 'Firmware: <b>'"$FW_VERSION"'</b> · Gen 1–3<br>johan fork build · based on upstream firmware '"$FW_BASE_UPSTREAM"' · commit <code>'"$SHORT"'</code></p>'
+subst 'Flash firmware '"$PAGE_SRC_VERSION"'</h2>' 'Flash firmware '"$FW_VERSION"'</h2>'
+subst 'Install TamaPoke '"$PAGE_SRC_VERSION"'</button>' 'Install TamaPoke '"$FW_VERSION"'</button>'
 subst '<p class="note">Sprites: <a' '<p class="note">About this build: built automatically from the johan branch of <a href="'"$REPO_URL"'">'"$REPO_SLUG"'</a>.\n    See the <a href="'"$REPO_URL"'/blob/johan/CHANGELOG.md">changelog</a> for what differs from\n    <a href="'"$UPSTREAM_URL"'">upstream</a>.</p>\n\n  <p class="note">Sprites: <a'
 
 cat > "$OUT/manifest.json" <<EOF
@@ -130,7 +140,8 @@ cat > "$OUT/build-info.json" <<EOF
   "short": "$SHORT",
   "branch": "$BRANCH",
   "built_at": "$BUILT_AT",
-  "firmware_version": "$FW_VERSION"
+  "firmware_version": "$FW_VERSION",
+  "upstream_base": "$FW_BASE_UPSTREAM"
 }
 EOF
 

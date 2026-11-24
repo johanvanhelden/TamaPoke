@@ -11,15 +11,15 @@ The installer flashes firmware and copies sprites to the microSD over Web Serial
 
 | Page | Manifest | Purpose |
 | --- | --- | --- |
-| `web/index.html` | `manifest.json` | Public installer, firmware `1.36.2`, no debug controls |
+| `web/index.html` | `manifest.json` | Public installer for the tracked upstream firmware `1.36.2`, no debug controls |
 | `web/release-gen3.html` | `manifest-gen3.json` | Local copy of the public flow |
-| `web/dev.html` | `manifest-local.json` | Debug build `1.36.2-hoenn-walk-local` with click-driven diagnostics |
-| GitHub Pages site | generated `manifest.json` | Built by `tools/build_pages.sh` from `web/index.html` for every push to `johan`; firmware parts named `tamapoke-<FW_VERSION>-<branch>-<shortsha>-*.bin` |
+| `web/dev.html` | `manifest-local.json` | Fork local debug build (`<FW_VERSION>-local`, currently `0.1.0-local`) with click-driven diagnostics |
+| GitHub Pages site (fork firmware, e.g. `0.1.0`) | generated `manifest.json` | Built by `tools/build_pages.sh` from `web/index.html` for every push to `johan`; firmware parts named `tamapoke-<FW_VERSION>-<branch>-<shortsha>-*.bin` |
 
 ## Workflow
 
 ```bash
-bash tools/build_web_local.sh --check   # compile + validate, changes nothing
+bash tools/build_web_local.sh --check   # compile + validate, changes nothing; version comes from TamaPoke.ino
 bash tools/build_web_local.sh           # refresh the four local firmware parts and the Gen-3 pack
 python3 -m http.server 8000 --directory web
 ```

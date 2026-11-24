@@ -5,7 +5,6 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 ROOT="$PWD"
 FQBN="esp32:esp32:esp32s3:CDCOnBoot=cdc,FlashSize=16M,PSRAM=opi,PartitionScheme=app3M_fat9M_16MB"
-VERSION="1.36.2-hoenn-walk-local"
 CHECK_ONLY=0
 
 if [[ ${1:-} == "--check" ]]; then
@@ -20,8 +19,15 @@ if ! grep -Eq '^#define DEX_COUNT 386$' dex.h; then
   echo "Refusing local build: dex.h must contain exactly 386 species." >&2
   exit 1
 fi
-if ! grep -q '#define FW_VERSION "1.36.2-hoenn-walk-local"' TamaPoke.ino; then
-  echo "Refusing local build: local firmware version does not match $VERSION." >&2
+# FW_VERSION of the TAMAPOKE_LOCAL_TEST profile is the single source of the version.
+VERSION="$(sed -nE '/^#ifdef TAMAPOKE_LOCAL_TEST/{n;s/^#define FW_VERSION "([^"]+)".*/\1/p;}' TamaPoke.ino)"
+if [[ ! $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+-local$ ]]; then
+  echo "Refusing local build: cannot read FW_VERSION (MAJOR.MINOR.PATCH-local) of the TAMAPOKE_LOCAL_TEST profile from TamaPoke.ino (got '$VERSION')." >&2
+  exit 1
+fi
+MANIFEST_VERSION="$(sed -nE 's/^  "version": "([^"]+)".*/\1/p' web/manifest-local.json)"
+if [[ $MANIFEST_VERSION != "$VERSION" ]]; then
+  echo "Refusing local build: web/manifest-local.json version '$MANIFEST_VERSION' differs from FW_VERSION '$VERSION'; update the manifest, its part paths and web/dev.html." >&2
   exit 1
 fi
 

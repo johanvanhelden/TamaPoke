@@ -26,7 +26,7 @@ Everything runs on the host (WSL2, Ubuntu); there is no Docker. Use the `make` t
 | Fast checks without toolchain | `make validate` |
 | Build + run the desktop emulator | `make emu` (`make emu-fast` = 60× time) |
 | Headless emulator screenshot | `make emu-shot TAPS="233,145" MS=2000` |
-| Validate installer builds (needs Arduino CLI) | `make web-check` |
+| Validate the Pages build and the local installer build (needs Arduino CLI) | `make web-check` |
 | Validate the GitHub Pages site build (needs Arduino CLI) | `make pages-check` |
 
 - A `preToolUse` hook (`.github/hooks/`) denies `gh`, `git push`, `esptool` erase commands and `find /`. When it denies something, take the stated alternative instead of working around it.
@@ -51,12 +51,21 @@ Everything runs on the host (WSL2, Ubuntu); there is no Docker. Use the `make` t
 ## Release and installer rules
 
 - Never publish, release or change the PR without an explicit request. Local building, testing and the local web installer are always fine.
-- GitHub Pages: the `.github/workflows/pages.yml` workflow builds and deploys the installer from every push to `johan`; that is approved and automatic. Agents still never enable or switch Pages, push, run the workflow or publish releases by themselves. The public site comes only from `tools/build_pages.sh` (release profile, tagged `<FW_VERSION>-<branch>-<shortsha>` in file names and manifest); it never contains `web/dev.html`, `web/manifest-local.json`, historical firmware or debug commands.
+- GitHub Pages: the `.github/workflows/pages.yml` workflow builds and deploys the installer from every push to `johan`; that is approved and automatic. Agents still never enable or switch Pages, push, run the workflow or publish releases by themselves. The public site comes only from `tools/build_pages.sh` (release profile, tagged `<FW_VERSION>-<branch>-<shortsha>` in file names and manifest, for example `0.1.0-johan-abc1234`); it never contains `web/dev.html`, `web/manifest-local.json`, historical firmware or debug commands.
 - Firmware updates are flashed with "Erase device" off, or the save is lost.
 - A Gen-3 install always has two steps: flash the firmware **and** send both sprite packs (`sprites.pak`, `sprites-gen3-update.pak`) to the microSD. `sprites-gen3-full.pak` does not exist (it exceeded GitHub's 100 MB limit) and must never be required.
 - `web/dev.html`, `web/manifest-local.json` and `TAMAPOKE_LOCAL_TEST` never go into the public installer (`web/index.html`, `web/manifest.json`). The public build has no debug commands (`TESTMON`, `TESTEVO`, ...).
 - Do not commit historical firmware binaries in bulk; only the four parts of an approved version.
-- `FW_VERSION` in `TamaPoke.ino`, `tools/build_web_gen3.sh`, `tools/build_web_local.sh` and the manifests in `web/` must agree. The code wins; fix the docs afterwards.
+- `FW_VERSION` (the fork's own SemVer) and `FW_BASE_UPSTREAM` live only in `TamaPoke.ino`; `tools/build_pages.sh` reads them from there, so the Pages build needs no manual version edits. The tracked `web/manifest.json`, `manifest-gen3.json`, `index.html`, `release-gen3.html` and `web/firmware/tamapoke-1.36.2-*.bin` are the frozen upstream `1.36.2` artifacts (`build_web.sh` and `build_web_gen3.sh` refuse to run); do not edit them to match the fork version. The local flow follows the fork version: `tools/build_web_local.sh` reads it from the source, and `web/manifest-local.json` and `web/dev.html` must carry the same `-local` version. See Versioning below. The code wins; fix the docs afterwards.
+
+## Versioning
+
+- `FW_VERSION` in `TamaPoke.ino` is the fork's own SemVer (`MAJOR.MINOR.PATCH`, `-local` suffix in the `TAMAPOKE_LOCAL_TEST` profile). It started at `0.1.0` and stays `0.x` while the fork evolves. `FW_BASE_UPSTREAM` records the upstream firmware version the fork is based on (currently `1.36.2`).
+- Bump `MAJOR` when saves are no longer compatible with upstream saves (or for another breaking change), `MINOR` for new gameplay or features, `PATCH` for fixes and small tweaks.
+- Bump only for firmware changes (anything compiled into the binary), once per feature or fix merged on `johan`, in the same commit as its `CHANGELOG.md` entry. Tooling-, docs- and CI-only changes do not bump.
+- Per bump touch: `FW_VERSION` (both profiles, keep the `-local` one in step) in `TamaPoke.ino`, `web/manifest-local.json` (version and part paths) and `web/dev.html` (`?v=` and label) for the local installer, a new dated `CHANGELOG.md` section (move the Unreleased entries into it), and `README.md` if it names the version. Nothing else: the Pages build and the emulator read the source. `make test` fails when the format is wrong.
+- Upstream merge: update `FW_BASE_UPSTREAM`, bump `MINOR` or `PATCH` by the size of the change, and add the changelog line "Merged upstream X".
+- The device screen shows only the short own version (`v0.1.0`). The serial boot line, `SAVEINFO`, the Pages page and `build-info.json` also give the upstream base.
 
 ## Branch strategy
 
