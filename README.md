@@ -116,6 +116,14 @@ bash tools/build_web_local.sh --check   # Gen 3 debug build, 386 Pokémon
 bash tools/build_web_gen2_legacy.sh --check # pinned historical Gen 2 check
 ```
 
+Try the firmware on the desktop without flashing (SDL emulator, optional 60× time):
+
+```bash
+make emu-fast
+```
+
+See [tools/emu/README.md](tools/emu/README.md).
+
 Build the local artifacts, serve the folder and open the required page:
 
 ```bash

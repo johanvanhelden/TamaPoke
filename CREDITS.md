@@ -35,6 +35,7 @@ Huge thanks to that whole community for an enormous amount of work.
 | SensorLib (CST9217 touch, PCF85063 RTC) | [Lewis He / lewisxhe](https://github.com/lewisxhe/SensorLib) |
 | XPowersLib (AXP2101 PMU) | [Lewis He / lewisxhe](https://github.com/lewisxhe/XPowersLib) |
 | Board and pinout | [Waveshare ESP32-S3-Touch-AMOLED-1.75](https://www.waveshare.com/wiki/ESP32-S3-Touch-AMOLED-1.75) |
+| Desktop emulator (`tools/emu/`) | Derived from [DylanPDao/TamaPoke](https://github.com/DylanPDao/TamaPoke) `tools/emu` (MIT, © 2026 Quique Tortosa and contributors), reworked for this firmware. `font.cpp` is the 5×7 bitmap font from Adafruit_GFX (BSD, © 2012 Adafruit Industries; notice kept in the file) |
 | Web installer | [ESP Web Tools](https://esphome.github.io/esp-web-tools/) (Nabu Casa) |
 
 ## Testing notes

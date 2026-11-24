@@ -23,3 +23,13 @@ web/firmware/tamapoke-*.bin
 
 # Local GitHub login leftover; never commit.
 .gh-auth/
+
+# Desktop emulator build output and the rootless SDL2 copy
+tools/emu/.sdl/
+tools/emu/tamapoke-emu
+tools/emu/proto.h
+tools/emu/sketch.cpp
+*.nvs
+
+# Agent scratch space
+.dev/tmp/
