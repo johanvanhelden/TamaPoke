@@ -32,7 +32,7 @@ Everything runs on the host (WSL2, Ubuntu); there is no Docker. Use the `make` t
 ## Validation
 
 - Run the smallest check that covers the change. Logic goes first into the native tests (`tests/`), then the emulator, and only then the hardware.
-- Native tests and the emulator do not replace hardware: display clipping, real touch, IMU, audio volume, SD transfer and save preservation are only proven on the board.
+- Native tests and the emulator do not replace hardware: display clipping, real touch, IMU, speaker and audio volume, SD transfer and save preservation are only proven on the board.
 - After changing `AGENTS.md`, `README.md`, `.github/instructions/`, `.github/skills/` or the `Makefile`, run `make ai-docs-check`. Changes to `.github/hooks/` are covered by `make test-agent-tools`.
 
 ## Conventions

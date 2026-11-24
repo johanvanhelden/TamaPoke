@@ -10,7 +10,7 @@ make emu-fast    # 60x time: one game minute per real second
 
 Or directly: `bash tools/emu/build.sh && tools/emu/tamapoke-emu --scale 2 --fast 60`.
 
-It is **not a substitute for the board**: timing, touch behaviour, DMA tearing, PSRAM pressure, audio and battery only exist on hardware.
+It is **not a substitute for the board**: timing, touch behaviour, DMA tearing, PSRAM pressure, and battery only exist on hardware. Audio is synthesized by the real `audio.cpp` and played through the host speakers, but the speaker, ES8311 and real loudness are only proven on the board. On WSL2 sound needs WSLg's PulseAudio (`SDL_AUDIODRIVER=pulseaudio` if SDL picks the wrong driver); without an audio device the emulator warns once and stays silent.
 
 ## Using it
 
@@ -48,7 +48,8 @@ Pixels outside the round bezel are dimmed, not hidden, so you can see what the r
 | `Preferences.h` | NVS, backed by a file so the pet survives restarts |
 | `Arduino_GFX_Library.h` | the canvas: every primitive the sketch uses, into an RGB565 buffer |
 | `TouchDrvCSTXXX.hpp` | the CST9217, fed by the mouse |
-| `host_impl.cpp` | SD (sprites and thumbnails from a directory), RTC, battery, audio (silent), IMU (steps/shake from the keyboard) |
+| `freertos_shim.h`, `ESP_I2S.h` | FreeRTOS queue/task shims (threads) and an I2S stub feeding the SDL audio device (`main_sdl.cpp`) so the unmodified `audio.cpp` runs |
+| `host_impl.cpp` | SD (sprites and thumbnails from a directory), RTC, battery, IMU (steps/shake from the keyboard) |
 | `font.cpp` | the classic 5×7 GFX glyphs |
 | `genproto.py` | the function prototypes the Arduino build normally generates |
 | `main_sdl.cpp` | window, input, NVS file, headless capture |

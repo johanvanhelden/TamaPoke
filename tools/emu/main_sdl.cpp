@@ -28,6 +28,45 @@ extern Arduino_Canvas *gfx;
 
 #define PANEL 466
 
+// --- audio: audio.cpp's synth task writes 16 kHz s16 stereo through I2SClass ---
+// Without a device (headless, or SDL could not open one) writes are discarded
+// but still paced to real time, so the task's cooldown and busy logic behave.
+static SDL_AudioDeviceID g_audioDev = 0;
+static volatile bool g_audioClosing = false;
+static const uint32_t AUDIO_BYTES_PER_SEC = 16000 * 4;
+
+static void emuAudioOpen() {
+  if (SDL_InitSubSystem(SDL_INIT_AUDIO) != 0) {
+    fprintf(stderr, "emu: audio disabled (%s)\n", SDL_GetError());
+    return;
+  }
+  SDL_AudioSpec want;
+  SDL_zero(want);
+  want.freq = 16000; want.format = AUDIO_S16SYS; want.channels = 2; want.samples = 512;
+  g_audioDev = SDL_OpenAudioDevice(nullptr, 0, &want, nullptr, 0);
+  if (!g_audioDev) {
+    fprintf(stderr, "emu: audio disabled (%s); on WSL2 check WSLg PulseAudio or set SDL_AUDIODRIVER\n", SDL_GetError());
+    return;
+  }
+  SDL_PauseAudioDevice(g_audioDev, 0);
+}
+static void emuAudioClose() {
+  g_audioClosing = true;
+  if (g_audioDev) { SDL_CloseAudioDevice(g_audioDev); g_audioDev = 0; }
+}
+size_t emuAudioWrite(const uint8_t *data, size_t bytes) {
+  if (g_audioClosing) return bytes;
+  SDL_AudioDeviceID dev = g_audioDev;
+  if (!dev) {
+    usleep((useconds_t)((uint64_t)bytes * 1000000 / AUDIO_BYTES_PER_SEC));
+    return bytes;
+  }
+  // keep ~60 ms queued: enough to avoid underruns, small enough to pace the synth
+  while (!g_audioClosing && SDL_GetQueuedAudioSize(dev) > AUDIO_BYTES_PER_SEC / 16) usleep(2000);
+  if (!g_audioClosing) SDL_QueueAudio(dev, data, (Uint32)bytes);
+  return bytes;
+}
+
 // millis() lives in clock.cpp so the headless tests share it
 void FakeESP::restart() { Serial.println("emu: ESP.restart() -> exiting"); exit(0); }
 
@@ -169,6 +208,8 @@ int main(int argc, char **argv) {
   SDL_Texture *tex = SDL_CreateTexture(ren, SDL_PIXELFORMAT_RGB888,
                                        SDL_TEXTUREACCESS_STREAMING, PANEL, PANEL);
 
+  emuAudioOpen();   // before setup(): audioBegin() plays the startup jingle
+
   printf("TamaPoke emulator: click = touch, drag = swipe, hold W = walk (steps), S = shake, Esc = quit.\n");
   printf("Serial commands can be typed in this terminal. Time scale x%u (suspended while you touch).\n\n",
          emuTimeScale());
@@ -218,6 +259,7 @@ int main(int argc, char **argv) {
 
   nvsSave(save);
   printf("\nemu: state saved to %s\n", save);
+  emuAudioClose();
   SDL_DestroyTexture(tex);
   SDL_DestroyRenderer(ren);
   SDL_DestroyWindow(win);
