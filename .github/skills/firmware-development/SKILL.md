@@ -13,13 +13,13 @@ Board: Waveshare ESP32-S3-Touch-AMOLED-1.75 (16 MB flash, OPI PSRAM, 466×466 CO
 FQBN="esp32:esp32:esp32s3:CDCOnBoot=cdc,FlashSize=16M,PSRAM=opi,PartitionScheme=app3M_fat9M_16MB"
 ```
 
-Validated libraries: ESP32 Arduino core 3.3.10, GFX Library for Arduino 1.6.7, SensorLib 0.4.1, XPowersLib 0.3.3. `arduino-cli` is needed for real builds (`make web-check`, `tools/build_web*.sh`); it is not needed for native tests or the emulator. If it is missing, tell the developer instead of installing it.
+CI (`.github/workflows/pages.yml`) installs the same pinned core and libraries; keep both in sync when you change a version. Validated libraries: ESP32 Arduino core 3.3.10, GFX Library for Arduino 1.6.7, SensorLib 0.4.1, XPowersLib 0.3.3. `arduino-cli` is needed for real builds (`make web-check`, `tools/build_web*.sh`); it is not needed for native tests or the emulator. If it is missing, tell the developer instead of installing it.
 
 ## Test ladder (cheapest first)
 
 1. `make test`: native tests of `Pet`, battle code, thumbnails and the Web Serial script.
 2. `make emu` / `make emu-shot`: the real firmware on the desktop (`emulator` skill), including 60× aging.
-3. `make web-check`: full Arduino compile plus installer validation without replacing artifacts.
+3. `make web-check` / `make pages-check`: full Arduino compile plus installer validation without replacing artifacts.
 4. Flash the board with the local installer (`web-installer` skill). Hardware is the final judge for display clipping, touch, IMU, volume, SD transfer and save preservation.
 
 ## Build profiles

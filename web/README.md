@@ -6,9 +6,36 @@ End users currently use:
 
 <https://shadowenemyx.github.io/TamaPoke/web/>
 
+(This fork's installer is published at <https://johanvanhelden.github.io/TamaPoke/>,
+see below.)
+
 `index.html` and `manifest.json` serve the public Gen‑3 release `1.36.2` with
 Pokémon #1–386. They expose no debug controls and require the complete two-step
 firmware-plus-sprites installation.
+
+## Published installer (GitHub Pages)
+
+Every push to `johan` runs `.github/workflows/pages.yml`: `make test`, then
+`tools/build_pages.sh` (public `TAMAPOKE_GEN3_RELEASE` build), then a Pages
+deploy. The site always carries the latest `johan` commit (shown on the page and
+in `build-info.json`); firmware files are named
+`tamapoke-<version>-<branch>-<shortsha>-*.bin` (for example `1.36.2-johan-<shortsha>`). `dev.html`,
+`manifest-local.json` and historical firmware are never published. The page is
+branded as the johan fork build (title, upstream base version, commit) with links
+to the repository, changelog and upstream; `tools/build_pages.sh` does this, not
+`web/index.html`.
+
+One-time setup on the fork:
+
+1. Enable Actions (Settings > Actions > General).
+2. Settings > Pages > Source = **GitHub Actions**.
+3. Settings > Environments > `github-pages` > Deployment branches: add `johan`
+   (the default only allows the default branch).
+4. Start the first run with a push to `johan` or the **Run workflow** button.
+
+Flash with **Erase device** off to keep the save. A Gen‑3 install is the
+firmware plus both sprite packs (`sprites.pak`, `sprites-gen3-update.pak`).
+Build locally with `make pages-check` or `bash tools/build_pages.sh`.
 
 ## Gen‑3 pages
 

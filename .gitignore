@@ -33,3 +33,6 @@ tools/emu/sketch.cpp
 
 # Agent scratch space
 .dev/tmp/
+
+# GitHub Pages site assembled by tools/build_pages.sh
+_site/

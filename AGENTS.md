@@ -4,13 +4,15 @@ Pokémon tamagotchi firmware (Arduino C++, ESP32-S3) for the Waveshare ESP32-S3-
 
 This is a living document. If something here is wrong or stale, fix it rather than working around it.
 
+Maintenance rule: when firmware behavior or the save format changes, say so in the `CHANGELOG.md` entry (one user-facing line, including any effect on compatibility with upstream saves) and update `README.md` if it describes that behavior. Never state in the docs that the firmware is identical to upstream.
+
 ## Where instructions live
 
 - This file: what applies to every task.
 - `.github/instructions/*.instructions.md`: conventions per path, loaded automatically for matching files.
 - `.github/skills/`: `emulator`, `firmware-development`, `web-installer`. Activate the matching skill when you work in that domain.
 - `.github/copilot-instructions.md`: language and review focus.
-- `AI_HANDOFF.md` (German, long) holds the version chronicle and architecture notes; read it only when you need history. `progress.md` and `HOENN_WALK_LOCAL.md` are public-facing status notes.
+- `AI_HANDOFF.md` (German, long) holds the version chronicle and architecture notes; read it only when you need history. `progress.md` and `HOENN_WALK_LOCAL.md` are public-facing status notes. `CHANGELOG.md` lists what this fork changes versus upstream.
 
 ## Command execution
 
@@ -25,6 +27,7 @@ Everything runs on the host (WSL2, Ubuntu); there is no Docker. Use the `make` t
 | Build + run the desktop emulator | `make emu` (`make emu-fast` = 60× time) |
 | Headless emulator screenshot | `make emu-shot TAPS="233,145" MS=2000` |
 | Validate installer builds (needs Arduino CLI) | `make web-check` |
+| Validate the GitHub Pages site build (needs Arduino CLI) | `make pages-check` |
 
 - A `preToolUse` hook (`.github/hooks/`) denies `gh`, `git push`, `esptool` erase commands and `find /`. When it denies something, take the stated alternative instead of working around it.
 - Never read or print `.gh-auth/` (a local GitHub login leftover).
@@ -47,7 +50,8 @@ Everything runs on the host (WSL2, Ubuntu); there is no Docker. Use the `make` t
 
 ## Release and installer rules
 
-- Never publish, release, switch Pages or change the PR without an explicit request. Local building, testing and the local web installer are always fine.
+- Never publish, release or change the PR without an explicit request. Local building, testing and the local web installer are always fine.
+- GitHub Pages: the `.github/workflows/pages.yml` workflow builds and deploys the installer from every push to `johan`; that is approved and automatic. Agents still never enable or switch Pages, push, run the workflow or publish releases by themselves. The public site comes only from `tools/build_pages.sh` (release profile, tagged `<FW_VERSION>-<branch>-<shortsha>` in file names and manifest); it never contains `web/dev.html`, `web/manifest-local.json`, historical firmware or debug commands.
 - Firmware updates are flashed with "Erase device" off, or the save is lost.
 - A Gen-3 install always has two steps: flash the firmware **and** send both sprite packs (`sprites.pak`, `sprites-gen3-update.pak`) to the microSD. `sprites-gen3-full.pak` does not exist (it exceeded GitHub's 100 MB limit) and must never be required.
 - `web/dev.html`, `web/manifest-local.json` and `TAMAPOKE_LOCAL_TEST` never go into the public installer (`web/index.html`, `web/manifest.json`). The public build has no debug commands (`TESTMON`, `TESTEVO`, ...).
@@ -75,5 +79,7 @@ Everything runs on the host (WSL2, Ubuntu); there is no Docker. Use the `make` t
 
 - This is a private project: do not use the `gh` CLI. Use plain `git` for local history and ask the developer when GitHub information is needed.
 - Commit only when asked, and never push: the developer reviews and pushes. Write commit messages as [Conventional Commits](https://www.conventionalcommits.org/) with the `Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>` trailer.
+- Keep the history tidy: when two commits are about the same thing and the newest one corrects the one below it, squash them. If either commit is already pushed, ask the developer for confirmation first.
 - Open a pull request only when asked.
+- Every change on `johan` that differs from upstream (feature, fix, tooling users care about) adds an entry under Unreleased in `CHANGELOG.md` in the same commit; docs-only housekeeping and agent-only tooling may share one line. Update `README.md` when the behavior, setup or links it describes change.
 - Keep replies concise.

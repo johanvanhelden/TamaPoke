@@ -1,0 +1,73 @@
+name: Pages
+
+on:
+  push:
+    branches: [johan]
+    paths-ignore:
+      - "**/*.md"
+      - ".github/instructions/**"
+      - ".github/skills/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+env:
+  ESP32_CORE: "3.3.10"
+  LIB_GFX: "GFX Library for Arduino@1.6.7"
+  LIB_SENSOR: "SensorLib@0.4.1"
+  LIB_XPOWERS: "XPowersLib@0.3.3"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: make test
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: arduino/setup-arduino-cli@v2
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.arduino15
+            ~/Arduino/libraries
+          key: arduino-esp32-${{ env.ESP32_CORE }}-gfx1.6.7-sensorlib0.4.1-xpowerslib0.3.3
+
+      - name: Install ESP32 core and libraries
+        run: |
+          arduino-cli config init --overwrite
+          arduino-cli config add board_manager.additional_urls https://espressif.github.io/arduino-esp32/package_esp32_index.json
+          arduino-cli core update-index
+          arduino-cli core install "esp32:esp32@${ESP32_CORE}"
+          arduino-cli lib install "${LIB_GFX}" "${LIB_SENSOR}" "${LIB_XPOWERS}"
+          arduino-cli lib list
+
+      - name: Build site
+        run: bash tools/build_pages.sh
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

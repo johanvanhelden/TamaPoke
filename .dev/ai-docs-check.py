@@ -22,6 +22,7 @@ UNTRACKED_PREFIXES = (
     ".gh-auth",
     "tests/build",
     ".dev/tmp",
+    "_site",
     "tools/emu/.sdl",
     "tools/emu/tamapoke-emu",
     "tools/emu/proto.h",

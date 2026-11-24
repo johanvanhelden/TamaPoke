@@ -80,6 +80,7 @@ def main() -> None:
     parser.add_argument("--pak", type=Path, required=True)
     parser.add_argument("--manifest", type=Path)
     parser.add_argument("--expected-version")
+    parser.add_argument("--embedded-version", help="version string inside the app binary (default: --expected-version)")
     parser.add_argument("--expected-dex", type=int)
     parser.add_argument("--expected-files", type=int, required=True)
     parser.add_argument("--expected-thumbs", type=int)
@@ -92,8 +93,9 @@ def main() -> None:
     if args.app:
         if not args.expected_version:
             raise SystemExit("--app requires --expected-version")
-        if args.expected_version.encode() not in args.app.read_bytes():
-            raise SystemExit(f"{args.app}: firmware version {args.expected_version!r} not embedded")
+        embedded = args.embedded_version or args.expected_version
+        if embedded.encode() not in args.app.read_bytes():
+            raise SystemExit(f"{args.app}: firmware version {embedded!r} not embedded")
     if args.manifest:
         manifest = json.loads(args.manifest.read_text())
         if manifest.get("version") != args.expected_version:
