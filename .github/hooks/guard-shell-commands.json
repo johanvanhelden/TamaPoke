@@ -1,0 +1,13 @@
+{
+    "version": 1,
+    "hooks": {
+        "preToolUse": [
+            {
+                "type": "command",
+                "bash": "./scripts/guard-shell-commands.py",
+                "cwd": ".github/hooks",
+                "timeoutSec": 5
+            }
+        ]
+    }
+}

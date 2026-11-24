@@ -1,0 +1,7 @@
+{
+    "sandbox": {
+        "userPolicy": {
+            "deniedPaths": [".gh-auth"]
+        }
+    }
+}
