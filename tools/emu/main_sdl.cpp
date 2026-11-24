@@ -4,6 +4,13 @@
 #include "Arduino.h"
 #include "Arduino_GFX_Library.h"
 #include "Preferences.h"
+// pet.save() is private, and the firmware only calls it on events: steps below a
+// 100 boundary and the like live in RAM until then. The emulator has no power
+// cut to simulate, so it needs to force a save at exit.
+#define private public
+#include "pet.h"
+#undef private
+#include <csignal>
 #include <chrono>
 #include <ctime>
 #include <string>
@@ -68,7 +75,21 @@ size_t emuAudioWrite(const uint8_t *data, size_t bytes) {
 }
 
 // millis() lives in clock.cpp so the headless tests share it
-void FakeESP::restart() { Serial.println("emu: ESP.restart() -> exiting"); exit(0); }
+extern Pet pet;
+static const char *g_savePath = nullptr;
+static bool g_booted = false;           // setup() has run, so `pet` is initialized
+static volatile sig_atomic_t g_hupTerm = 0;
+
+// Writes through a temp file so a kill mid-write cannot truncate the real save.
+static void persist(bool forcePet) {
+  if (!g_savePath || !g_booted) return;
+  if (forcePet) pet.save();
+  std::string tmp = std::string(g_savePath) + ".tmp";
+  nvsSave(tmp.c_str());
+  rename(tmp.c_str(), g_savePath);
+}
+// restart() must not call pet.save(): WIPE clears the store first and expects it to stay empty
+void FakeESP::restart() { Serial.println("emu: ESP.restart() -> exiting"); persist(false); exit(0); }
 
 // --- stdin-backed serial ---
 static std::deque<std::string> g_lines;
@@ -197,6 +218,7 @@ int main(int argc, char **argv) {
     else if (!strcmp(argv[i], "--wipe")) remove(save);
     else { fprintf(stderr, "unknown or incomplete option: %s\n", argv[i]); return 2; }
   }
+  g_savePath = save;
   nvsLoad(save);
   if (shotOut) return headlessShot(shotOut, shotMs);   // no SDL at all
 
@@ -215,6 +237,9 @@ int main(int argc, char **argv) {
          emuTimeScale());
 
   setup();
+  g_booted = true;
+  signal(SIGHUP, [](int) { g_hupTerm = 1; });   // closing the terminal; SDL maps only SIGINT/SIGTERM
+  uint32_t lastPersist = SDL_GetTicks();
 
   bool run = true;
   uint32_t lastStep = 0;
@@ -244,6 +269,8 @@ int main(int argc, char **argv) {
     }
     pumpStdin();
     loop();
+    if (g_hupTerm) run = false;
+    if (SDL_GetTicks() - lastPersist > 30000) { pet.flushSave(); persist(false); lastPersist = SDL_GetTicks(); }
 
     if (gfx && gfx->frameReady) {
       gfx->frameReady = false;
@@ -257,7 +284,7 @@ int main(int argc, char **argv) {
     SDL_Delay(5);
   }
 
-  nvsSave(save);
+  persist(true);
   printf("\nemu: state saved to %s\n", save);
   emuAudioClose();
   SDL_DestroyTexture(tex);

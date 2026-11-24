@@ -30,7 +30,7 @@ Pixels outside the round bezel are dimmed, not hidden, so you can see what the r
 |---|---|
 | `--scale N` | window zoom (default 2) |
 | `--fast N` | run the game clock N× faster. The speed-up is **suspended while you touch the panel**, because the sketch times gestures on the same clock (a tap must be under 1.5 s) |
-| `--save FILE` | where NVS is persisted (default `tamapoke.nvs` in the current directory) |
+| `--save FILE` | where NVS is persisted (default `tamapoke.nvs` in the current directory). Written at exit (including SIGHUP/SIGTERM and `ESP.restart()`) after forcing a pet save, and every 30 s; `kill -9` loses the session |
 | `--wipe` | delete the save first |
 | `--sprites DIR` | sprite directory (default `tools/sdcard/mons`) |
 | `--shot FILE.ppm` | headless: run without a window, write one frame and exit |
@@ -38,6 +38,8 @@ Pixels outside the round bezel are dimmed, not hidden, so you can see what the r
 | `--tap X,Y` | with `--shot`: tap at panel coordinates; repeatable. Taps run after a 1 s boot |
 
 `make emu-shot TAPS="233,145" MS=2000` wraps the headless mode and writes `.dev/tmp/shot.ppm`.
+
+Without a window (agents, CI): `env -u DISPLAY -u WAYLAND_DISPLAY SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=disk SDL_DISKAUDIOFILE=out.raw tools/emu/tamapoke-emu ...` runs the full loop with serial commands on stdin.
 
 ## How it works
 
