@@ -41,6 +41,18 @@ python3 -m http.server 8000 --directory _site
 
 The guard fails the build when the site contains anything outside the expected file list or the strings `TAMAPOKE_LOCAL_TEST`, `TESTMON`, `TESTEVO`, `manifest-local`, `dev.html`. `dev.html`, `manifest-local.json`, `manifest-gen3.json`, historical firmware and `sprites-gen2-update.pak` never go public.
 
+### Checking a deploy (read-only, no `gh`)
+
+After the developer pushes, check the run and the live site with `curl`:
+
+```bash
+curl -s "https://api.github.com/repos/johanvanhelden/TamaPoke/actions/runs?per_page=3"   # status/conclusion per run
+curl -s https://johanvanhelden.github.io/TamaPoke/build-info.json                      # commit, firmware_version, upstream_base
+curl -s https://johanvanhelden.github.io/TamaPoke/manifest.json                        # part paths carry the tag
+```
+
+The live `build-info.json` commit must equal the pushed commit. `dev.html` and `manifest-local.json` must return 404 on the live site. If a run fails, read the failed step in the run's log page (the first run showed that the compile step and library names work).
+
 ## Rules
 
 - Full install = firmware + `sprites.pak` + `sprites-gen3-update.pak`, in that order. No `sprites-gen3-full.pak`.

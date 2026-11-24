@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """preToolUse guardrail for agent shell commands (not a security boundary).
 
-Denies recurring mistakes in this private project:
-- `gh` (GitHub CLI): the repository is private; the owner does not want it used.
+Denies recurring mistakes in this project:
+- `gh` (GitHub CLI): the owner does not want it used; read-only GitHub data comes from plain `curl`.
 - `git push`: the developer reviews and pushes.
 - `esptool` erase commands: erasing the flash wipes the pet's save (NVS).
 - `find /...`, which crawls the slow Windows mount under WSL.
@@ -31,8 +31,8 @@ KEYWORD_SEPARATORS = {"{", "}", "!", "then", "do", "else"}
 ASSIGNMENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*=")
 
 GH_REASON = (
-    "Blocked: `gh` is not used in this private project. Use plain `git` for local history; "
-    "ask the owner when GitHub information is needed."
+    "Blocked: `gh` is not used in this project. Use plain `git` for local history and plain `curl` "
+    "on the public GitHub API for read-only data (see AGENTS.md); ask the owner for anything that writes."
 )
 PUSH_REASON = "Blocked: never push. The developer reviews and pushes. See AGENTS.md."
 ERASE_REASON = (
